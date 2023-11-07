@@ -11,8 +11,6 @@ ana = Client(
     bot_token=TELEGRAM_BOT_TOKEN,
 )
 
-cb = chatbot(OPENAI_API_KEY, "roles//default_chat.json")
-
 
 @ana.on_message(filters.command("start"))
 async def start_cmd(client: ana, msg: Message):
@@ -22,7 +20,9 @@ async def start_cmd(client: ana, msg: Message):
         reply_to_message_id=msg.id,
         disable_web_page_preview=True,
     )
+    
 
+cb = chatbot(OPENAI_API_KEY, "roles//default_chat.json")
 
 @ana.on_message(filters.command("clear"))
 async def clear_chat(client: ana, msg: Message):

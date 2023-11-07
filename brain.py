@@ -33,29 +33,6 @@ default_chat = [
 ]
 
 
-def fileLoadRead(file_path, role, content):
-    with open(file_path, "r") as r:
-        data = json.load(r)
-    with open(file_path, "w") as w:
-        append_data = {"role": role, "content": content}
-        data.append(append_data)
-        json.dump(data, w)
-
-
-def fileRead(file_path):
-    with open(file_path, "r") as rr:
-        data = json.load(rr)
-        return data
-
-
-def clearChat(file_path):
-    with open(file_path, "w") as f:
-        json.dump(default_chat, f)
-
-def newChat(name):
-    with open(name, "w") as f:
-        json.dump(default_chat, f)
-
 class chatbot:
     def __init__(self, openai_api_key, json_file_path):
         openai.api_key = openai_api_key
@@ -63,8 +40,8 @@ class chatbot:
 
     def chat(self, user_prompt):
         try:
-            fileLoadRead(self.file_path, "user", user_prompt)
-            self.final_user_data = fileRead(self.file_path)
+            self.fileLoadRead(self.file_path, "user", user_prompt)
+            self.final_user_data = self.fileRead(self.file_path)
             self.response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=self.final_user_data,
@@ -75,13 +52,31 @@ class chatbot:
                 presence_penalty=0
             )
             self.ai_data = self.response["choices"][0]["message"]["content"]
-            fileLoadRead(self.file_path, "assistant", self.ai_data)
+            self.fileLoadRead(self.file_path, "assistant", self.ai_data)
             return self.ai_data
         except Exception as e:
             print(e)
 
     def clear(self):
         try:
-            clearChat(self.file_path)
+            with open(self.file_path, "w") as f:
+                json.dump(default_chat, f)
         except Exception as e:
             print(e)
+
+    def fileLoadRead(self, file_path, role, content):
+        with open(file_path, "r") as r:
+            data = json.load(r)
+        with open(file_path, "w") as w:
+            append_data = {"role": role, "content": content}
+            data.append(append_data)
+            json.dump(data, w)
+
+    def fileRead(self, file_path):
+        with open(file_path, "r") as rr:
+            data = json.load(rr)
+            return data
+
+    def newChat(self, name):
+        with open(name, "w") as f:
+            json.dump(default_chat, f)
