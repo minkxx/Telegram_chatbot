@@ -1,4 +1,5 @@
-from brain import chatbot
+import os
+from brain import chatbot, newChat
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram import enums
@@ -11,6 +12,8 @@ ana = Client(
     bot_token=TELEGRAM_BOT_TOKEN,
 )
 
+cb = chatbot(OPENAI_API_KEY)
+
 
 @ana.on_message(filters.command("start"))
 async def start_cmd(client: ana, msg: Message):
@@ -20,9 +23,25 @@ async def start_cmd(client: ana, msg: Message):
         reply_to_message_id=msg.id,
         disable_web_page_preview=True,
     )
-    
 
-cb = chatbot(OPENAI_API_KEY, "roles//default_chat.json")
+
+@ana.on_message(filters.command("new_chat"))
+async def new_chat(client: ana, msg: Message):
+    chat_path = f"roles//{msg.from_user.id}_chat.json"
+    if os.path.exists(chat_path):
+        await client.send_message(
+            chat_id=msg.chat.id,
+            text="Chat already exists",
+            reply_to_message_id=msg.id,
+        )
+    else:
+        newChat(chat_path)
+        await client.send_message(
+            chat_id=msg.chat.id,
+            text=f"Chat created!\n{chat_path}",
+            reply_to_message_id=msg.id,
+        )
+
 
 @ana.on_message(filters.command("clear"))
 async def clear_chat(client: ana, msg: Message):
@@ -31,21 +50,43 @@ async def clear_chat(client: ana, msg: Message):
         chat_id=msg.chat.id,
         text="Chat cleared!!",
         reply_to_message_id=msg.id,
-        disable_web_page_preview=True,
     )
-    # pass
+#TODO: fix chat clear
 
+@ana.on_message(filters.command("get_chat"))
+async def get_chat(client: ana, msg: Message):
+    chat_path = f"roles//{msg.from_user.id}_chat.json"
+    if os.path.exists(chat_path):
+        await client.send_document(
+            chat_id=msg.chat.id,
+            document=chat_path,
+            caption="Here is you chat history in json format.",
+            reply_to_message_id=msg.id,
+
+        )
+    else:
+        await client.send_message(
+            chat_id=msg.chat.id,
+            text="No chat found!",
+            reply_to_message_id=msg.id,
+        )
 
 @ana.on_message(filters.incoming)
 async def incoming_messages(client: ana, msg: Message):
-    await client.send_chat_action(msg.chat.id, enums.ChatAction.TYPING)
-    ai_msg = cb.chat(msg.text)
-    await client.send_message(
-        chat_id=msg.chat.id,
-        text=ai_msg,
-        reply_to_message_id=msg.id,
-        disable_web_page_preview=True,
-    )
+    chat_path = f"roles//{msg.from_user.id}_chat.json"
+    if os.path.exists(chat_path):
+        ai_msg = cb.chat(msg.text, chat_path)
+        await client.send_message(
+            chat_id=msg.chat.id,
+            text=ai_msg,
+            reply_to_message_id=msg.id,
+        )
+    else:
+        await client.send_message(
+            chat_id=msg.chat.id,
+            text="To interact with me you first need to create a chat first\n/new_chat",
+            reply_to_message_id=msg.id,
+        )
 
 print("bot started")
 ana.run()

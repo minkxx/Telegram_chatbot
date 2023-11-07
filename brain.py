@@ -34,11 +34,11 @@ default_chat = [
 
 
 class chatbot:
-    def __init__(self, openai_api_key, json_file_path):
+    def __init__(self, openai_api_key):
         openai.api_key = openai_api_key
-        self.file_path = json_file_path
 
-    def chat(self, user_prompt):
+    def chat(self, user_prompt, json_file_path):
+        self.file_path = json_file_path
         try:
             self.fileLoadRead(self.file_path, "user", user_prompt)
             self.final_user_data = self.fileRead(self.file_path)
@@ -77,6 +77,6 @@ class chatbot:
             data = json.load(rr)
             return data
 
-    def newChat(self, name):
-        with open(name, "w") as f:
-            json.dump(default_chat, f)
+def newChat(name):
+    with open(name, "w") as f:
+        json.dump(default_chat, f)
