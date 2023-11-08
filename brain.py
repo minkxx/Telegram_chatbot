@@ -32,6 +32,9 @@ default_chat = [
     }
 ]
 
+def newChat(name, theme=default_chat):
+    with open(name, "w") as f:
+        json.dump(theme, f)
 
 class chatbot:
     def __init__(self, openai_api_key):
@@ -57,9 +60,9 @@ class chatbot:
         except Exception as e:
             print(e)
 
-    def clear(self):
+    def clear(self, file_path):
         try:
-            with open(self.file_path, "w") as f:
+            with open(file_path, "w") as f:
                 json.dump(default_chat, f)
         except Exception as e:
             print(e)
@@ -76,7 +79,3 @@ class chatbot:
         with open(file_path, "r") as rr:
             data = json.load(rr)
             return data
-
-def newChat(name):
-    with open(name, "w") as f:
-        json.dump(default_chat, f)

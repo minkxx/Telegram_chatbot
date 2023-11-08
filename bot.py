@@ -45,13 +45,22 @@ async def new_chat(client: ana, msg: Message):
 
 @ana.on_message(filters.command("clear"))
 async def clear_chat(client: ana, msg: Message):
-    cb.clear()
-    await client.send_message(
-        chat_id=msg.chat.id,
-        text="Chat cleared!!",
-        reply_to_message_id=msg.id,
-    )
-#TODO: fix chat clear
+    chat_path = f"roles//{msg.from_user.id}_chat.json"
+    if os.path.exists(chat_path):
+        cb.clear(chat_path)
+        await client.send_message(
+            chat_id=msg.chat.id,
+            text="Chat cleared!!",
+            reply_to_message_id=msg.id,
+
+        )
+    else:
+        await client.send_message(
+            chat_id=msg.chat.id,
+            text="You have no chat created!!",
+            reply_to_message_id=msg.id,
+
+        )
 
 @ana.on_message(filters.command("get_chat"))
 async def get_chat(client: ana, msg: Message):
